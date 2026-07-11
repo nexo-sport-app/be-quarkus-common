@@ -9,6 +9,14 @@ package it.nexoapp.common.constant;
 public enum Environment {
 
     /**
+     * Test environment.
+     * Represents the environment used when running automated tests (unit and integration),
+     * typically activated through the Quarkus {@code test} profile. It relies on in-memory
+     * or mocked resources to keep test executions fast, isolated and reproducible.
+     */
+    TEST,
+
+    /**
      * Dev environment.
      * Represents the development environment typically used for personal or small-scale testing.
      * This environment allows developers to iterate and debug application features
@@ -38,6 +46,6 @@ public enum Environment {
      * This environment is configured to handle real-world traffic and ensures high availability,
      * reliability, and optimal performance.
      */
-    PROD;
+    PROD
 
 }

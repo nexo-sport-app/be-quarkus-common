@@ -13,6 +13,9 @@ public final class Constant {
         throw new IllegalInstantiationException();
     }
 
+    /** Represents a standardized "unknown" placeholder value. */
+    public static final String UNKNOWN = "unknown";
+
     /** Represents a standardized "Not Available" placeholder value. */
     public static final String N_A = "N/A";
 
