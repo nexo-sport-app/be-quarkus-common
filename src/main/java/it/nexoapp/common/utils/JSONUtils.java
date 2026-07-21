@@ -209,4 +209,80 @@ public class JSONUtils {
         }
     }
 
+    /**
+     * Serializes the given object into a human-readable, indented JSON string. The serialization
+     * process can optionally consider Jackson annotations based on the provided flag. If an error
+     * occurs during the serialization process, the method logs the exception and returns null.
+     *
+     * @param obj           The object to be serialized into pretty-printed JSON. It can be any Java
+     *                      object that is serializable by Jackson.
+     * @param useAnnotation A boolean flag indicating whether Jackson annotations
+     *                      should be considered during serialization. If true,
+     *                      annotations will influence the serialization process;
+     *                      otherwise, they will be ignored.
+     * @return An indented, human-readable JSON-formatted string representation of the provided object.
+     *         Returns null if an exception occurs during the serialization process or if the input object is null.
+     */
+    public static String prettyPrint(final Object obj, final boolean useAnnotation) {
+        final JsonMapper jsonMapper = getMapper(useAnnotation);
+        String json = null;
+
+        /* obj received is null, return null */
+        if (obj == null) {
+            logger.warn(NULL_WARNING);
+            return json;
+        }
+
+        try {
+            json = jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        } catch (final JsonProcessingException e) {
+            logger.error(GENERIC_ERROR_MESSAGE, json, e);
+        }
+        return json;
+    }
+
+    /**
+     * Serializes the given object into a human-readable, indented JSON string using default settings.
+     * This method uses Jackson's default annotation handling for the serialization process.
+     *
+     * @param obj The object to be serialized into pretty-printed JSON. It can be any Java object
+     *            that is serializable by Jackson. If null, the method will return null.
+     * @return An indented, human-readable JSON-formatted string representation of the provided object.
+     *         Returns null if an exception occurs during the serialization process or if the input object is null.
+     */
+    public static String prettyPrint(final Object obj) {
+        return prettyPrint(obj, true);
+    }
+
+    /**
+     * Reformats the provided JSON string into a human-readable, indented JSON string. The string
+     * is first deserialized into a generic {@code Object} and then re-serialized using the
+     * pretty-printing writer, so it must be well-formed for successful processing.
+     *
+     * @param json          The JSON string to be pretty-printed. Must not be null or blank
+     *                      if the operation is expected to succeed.
+     * @param useAnnotation A boolean flag indicating whether Jackson annotations should be
+     *                      enabled during the intermediate deserialization/serialization steps.
+     *                      If {@code true}, annotations will influence the behavior; otherwise, they will be ignored.
+     * @return An indented, human-readable JSON-formatted string.
+     *         Returns null if the input JSON string is blank or malformed.
+     */
+    public static String prettyPrint(final String json, final boolean useAnnotation) {
+        final Object object = fromJson(json, Object.class, useAnnotation);
+        return prettyPrint(object, useAnnotation);
+    }
+
+    /**
+     * Reformats the provided JSON string into a human-readable, indented JSON string using
+     * default annotation settings.
+     *
+     * @param json The JSON string to be pretty-printed. Must not be null or blank
+     *             if the operation is expected to succeed.
+     * @return An indented, human-readable JSON-formatted string.
+     *         Returns null if the input JSON string is blank or malformed.
+     */
+    public static String prettyPrint(final String json) {
+        return prettyPrint(json, true);
+    }
+
 }

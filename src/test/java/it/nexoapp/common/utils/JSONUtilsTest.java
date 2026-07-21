@@ -15,6 +15,7 @@ class JSONUtilsTest {
     private static final Person VALID_PERSON = new Person("John", 30, "New York");
     private static final String VALID_JSON = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
     private static final String INVALID_JSON = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"";
+    private static final String VALID_PRETTY_JSON = "{\n  \"name\" : \"John\",\n  \"age\" : 30,\n  \"city\" : \"New York\"\n}";
 
     /**
      * A simple test fixture class used exclusively for testing JSONUtils functionality.
@@ -221,6 +222,72 @@ class JSONUtilsTest {
 
         // Assert
         assertEquals(VALID_JSON, cleanedJson, "Cleanup method should remove unnecessary whitespace from a JSON string.");
+    }
+
+    // --
+    // JSON Pretty Print Tests
+    // -----------------------------------------------------------------------------------------------------------------
+
+    @Test
+    void whenValidObjectIsProvided_thenPrettyPrintReturnsIndentedJson() {
+        // Act
+        String json = JSONUtils.prettyPrint(VALID_PERSON);
+
+        // Assert
+        assertEquals(VALID_PRETTY_JSON, json, "Object should be converted to indented, pretty-printed JSON");
+    }
+
+    @Test
+    void whenNullObjectIsProvided_thenPrettyPrintReturnsNull() {
+        // Act
+        String json = JSONUtils.prettyPrint((Object) null);
+
+        // Assert
+        assertNull(json, "Null object should return null");
+    }
+
+    @Test
+    void whenExceptionalObjectIsProvided_thenPrettyPrintHandlesGracefully() {
+        // Arrange
+        Object exceptionalObject = new Object() {
+            @Override
+            public String toString() {
+                throw new RuntimeException("Serialization error");
+            }
+        };
+
+        // Act
+        String json = JSONUtils.prettyPrint(exceptionalObject);
+
+        // Assert
+        assertEquals("{ }", json, "Exceptional object should return empty pretty-printed JSON");
+    }
+
+    @Test
+    void whenValidJsonStringIsProvided_thenPrettyPrintReturnsIndentedJson() {
+        // Act
+        String json = JSONUtils.prettyPrint(VALID_JSON);
+
+        // Assert
+        assertEquals(VALID_PRETTY_JSON, json, "JSON string should be reformatted into indented, pretty-printed JSON");
+    }
+
+    @Test
+    void whenInvalidJsonStringIsProvided_thenPrettyPrintReturnsNull() {
+        // Act
+        String json = JSONUtils.prettyPrint(INVALID_JSON);
+
+        // Assert
+        assertNull(json, "Invalid JSON string should return null");
+    }
+
+    @Test
+    void whenNullJsonStringIsProvided_thenPrettyPrintReturnsNull() {
+        // Act
+        String json = JSONUtils.prettyPrint((String) null);
+
+        // Assert
+        assertNull(json, "Null JSON string should return null");
     }
 
 }
