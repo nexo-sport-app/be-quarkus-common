@@ -42,7 +42,7 @@ public final class Headers {
      * for monitoring, analytics, and access control purposes.
      * </p>
      * <p>
-     * <b>Example:</b> {@code x-caller: web-portal}
+     * <b>Example:</b> {@code x-caller: WEB}
      * </p>
      * <p>
      * <b>Common values:</b>
@@ -53,7 +53,7 @@ public final class Headers {
      * </ul>
      * </p>
      */
-    @Parameter(description = "Identifier of the calling application or service", example = "web-portal")
+    @Parameter(description = "Identifier of the calling application or service", example = "WEB")
     public static final String CALLER = "x-caller";
 
     /**
