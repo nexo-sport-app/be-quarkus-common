@@ -41,10 +41,10 @@ public abstract class AbstractLoggingFilter {
     protected static final String FAULT_TYPE = "Fault";
     protected static final String MASKED_VALUE = "##";
 
-    @ConfigProperty(name = "athlon.logging.fields.to.mask", defaultValue = "Authorization,")
+    @ConfigProperty(name = "app.log.fields-to-mask", defaultValue = "Authorization,")
     List<String> fieldToMask;
 
-    @ConfigProperty(name = "athlon.logging.fields.max.length", defaultValue = "100000")
+    @ConfigProperty(name = "app.log.fields-max-length", defaultValue = "100000")
     int maxFieldLength;
 
     /**
