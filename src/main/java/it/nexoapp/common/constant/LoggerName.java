@@ -9,8 +9,5 @@ public final class LoggerName {
     }
 
     public static final String EXCEPTION = "EXCEPTION";
-    public static final String SQL = "SQL";
-    public static final String CLIENT = "CLIENT";
-    public static final String SERVER = "SERVER";
 
 }
