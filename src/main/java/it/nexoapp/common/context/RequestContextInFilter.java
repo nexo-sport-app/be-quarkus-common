@@ -1,10 +1,12 @@
 package it.nexoapp.common.context;
 
+import io.quarkus.security.identity.SecurityIdentity;
 import io.vertx.ext.web.RoutingContext;
 import it.nexoapp.common.configuration.AppInfo;
 import it.nexoapp.common.constant.Headers;
 import it.nexoapp.common.constant.Language;
 import it.nexoapp.common.constant.MDCConstant;
+import it.nexoapp.common.security.NexoPrincipal;
 import it.nexoapp.common.utils.MDCUtils;
 import jakarta.annotation.Priority;
 import jakarta.interceptor.Interceptor;
@@ -13,75 +15,73 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.ext.Provider;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.UUID;
 
+/**
+ * Fills the request-scoped {@link RequestContext} and the MDC at the start of every request.
+ * <p>
+ * Only identifiers are copied: the call id, the client address, the language and, for a caller resolved by
+ * the identity augmentor, the subject, the association and the member. No provider-specific claim (session id,
+ * username, names, email) is read here, so no personal data reaches the MDC or the logs (D-20, ROL-03).
+ * The MDC is cleared by {@link RequestContextOutFilter}.
+ */
 @Provider
 @Priority(Interceptor.Priority.PLATFORM_BEFORE)
 @RequiredArgsConstructor
 public class RequestContextInFilter implements ContainerRequestFilter {
 
-    final AppInfo appInfo;
-    final RequestContext requestContext;
-    final RoutingContext routingContext;
-    final JsonWebToken jwt;
+    /* - configuration - */
+    /** Application identity, source of the code and node MDC values. */
+    private final AppInfo appInfo;
 
+    /* - request - */
+    /** Request-scoped context to populate. */
+    private final RequestContext requestContext;
+
+    /** Vert.x routing context of the current request, source of the client address. */
+    private final RoutingContext routingContext;
+
+    /* - security - */
+    /** Identity of the current request, with the principal attached by the augmentor. */
+    private final SecurityIdentity identity;
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void filter(final ContainerRequestContext rc) {
         // SERVICE INFO
-        // Set app code
         MDCUtils.put(MDCConstant.APP_CODE, appInfo.code());
-
-        // Set app node
         MDCUtils.put(MDCConstant.APP_NODE, appInfo.hostname());
 
         // REQUEST INFO
-        // Get all Headers
         requestContext.setHeaders(rc.getHeaders());
 
-        // Set up sessionId
-        String sessionId = jwt.getClaim("sid");
-        MDCUtils.put(MDCConstant.SESSION_ID, sessionId);
-        requestContext.setSessionId(sessionId);
-
-        // Set up callId
-        String callId = StringUtils.defaultIfEmpty(rc.getHeaders().getFirst(Headers.CALL_ID), UUID.randomUUID().toString());
+        final String callId = StringUtils.defaultIfEmpty(rc.getHeaders().getFirst(Headers.CALL_ID), UUID.randomUUID().toString());
         MDCUtils.put(MDCConstant.CALL_ID, callId);
         requestContext.setCallId(callId);
 
-        //Set up ip
-        String clientIpAddress = routingContext.request().remoteAddress().host();
+        final String clientIpAddress = routingContext.request().remoteAddress().host();
         MDCUtils.put(MDCConstant.IP, clientIpAddress);
         requestContext.setIp(clientIpAddress);
 
-        //Set up language
         requestContext.setLanguage(Language.fromLocale(rc.getLanguage()));
 
-        // USER INFO
-        // Set up userId
-        String userId = jwt.getClaim("sub");
-        MDCUtils.put(MDCConstant.USER_ID, userId);
-        requestContext.setUserId(userId);
-
-        // Set up the username
-        String username = jwt.getClaim("preferred_username");
-        MDCUtils.put(MDCConstant.USERNAME, username);
-        requestContext.setUsername(username);
-
-        // Set up FirstName
-        String firstName = jwt.getClaim("given_name");
-        requestContext.setFirstName(firstName);
-
-        // Set up LastName
-        String lastName = jwt.getClaim("family_name");
-        requestContext.setLastName(lastName);
-
-        // Set up the username
-        String email = jwt.getClaim("email");
-        MDCUtils.put(MDCConstant.EMAIL, email);
-        requestContext.setEmail(email);
-
+        // CALLER INFO (identifiers only)
+        final NexoPrincipal principal = identity.getAttribute(NexoPrincipal.ATTRIBUTE);
+        if (principal == null) {
+            return;
+        }
+        requestContext.setSubject(principal.key().subject());
+        if (principal.state() == NexoPrincipal.LinkState.LINKED) {
+            requestContext.setAssociationId(principal.associationId());
+            requestContext.setMemberId(principal.memberId());
+            MDCUtils.put(MDCConstant.ASSOCIATION_ID, principal.associationId().toString());
+            MDCUtils.put(MDCConstant.MEMBER_ID, principal.memberId().toString());
+        }
     }
 
 }

@@ -92,11 +92,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-linked", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-linked")
     })
     void linkedCallerReachesAuthenticatedEndpoint() {
         directory.put("sub-linked", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)));
@@ -115,11 +111,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-stranger", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-stranger"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-stranger")
     })
     void unlinkedCallerIsStoppedOnAuthenticatedEndpoint() {
         given().when().get("/probe-security/authenticated").then()
@@ -137,11 +129,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-stranger", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-stranger"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-stranger")
     })
     void unlinkedCallerReachesAllowUnlinkedEndpoint() {
         given().when().get("/probe-security/me").then()
@@ -158,11 +146,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void ambiguousCallerReachesAllowUnlinkedEndpoint() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -182,11 +166,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void ambiguousCallerMustSelectAnAssociation() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -206,11 +186,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void headerSelectsTheSecondAssociation() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -230,11 +206,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void foreignHeaderIsStillASelectionError() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -254,11 +226,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-linked", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-linked")
     })
     void linkedPresidentReachesRoleProtectedEndpoint() {
         directory.put("sub-linked", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)));
@@ -277,11 +245,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-stranger", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-stranger"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-stranger")
     })
     void unlinkedCallerOnRoleProtectedEndpointGetsNotLinked() {
         given().when().get("/probe-security/president").then()
@@ -299,11 +263,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-linked", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-linked")
     })
     void linkedCoachOnPresidentEndpointGetsForbidden() {
         directory.put("sub-linked", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.COACH)));
@@ -325,11 +285,7 @@ class IdentityGateTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void ambiguousCallerOnRoleProtectedEndpointMustSelect() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -350,9 +306,6 @@ class IdentityGateTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "user@nexo.test"),
             @Claim(key = "email_verified", value = "true")
     })
@@ -371,9 +324,6 @@ class IdentityGateTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "user@nexo.test"),
             @Claim(key = "email_verified", value = "false")
     })
@@ -392,9 +342,6 @@ class IdentityGateTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "user@nexo.test")
     })
     void missingVerificationClaimGetsTheSameDenial() {

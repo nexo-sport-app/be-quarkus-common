@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Alternative
 @Priority(1)
 @ApplicationScoped
-class StubIdentityDirectory implements IdentityDirectory {
+public class StubIdentityDirectory implements IdentityDirectory {
 
     /** Issuer used by the test identities. */
-    static final String ISSUER = "https://idp.nexo.test/realm";
+    public static final String ISSUER = "https://idp.nexo.test/realm";
 
     /* - state - */
     /** Memberships per identity, mutable by tests. */
@@ -42,7 +42,7 @@ class StubIdentityDirectory implements IdentityDirectory {
      * @param subject     the subject of the test identity
      * @param memberships the memberships the directory returns for it
      */
-    void put(final String subject, final MembershipRef... memberships) {
+    public void put(final String subject, final MembershipRef... memberships) {
         this.memberships.put(new IdentityKey(ISSUER, subject), List.of(memberships));
     }
 
@@ -51,7 +51,7 @@ class StubIdentityDirectory implements IdentityDirectory {
     /**
      * Forgets every membership.
      */
-    void clear() {
+    public void clear() {
         memberships.clear();
     }
 

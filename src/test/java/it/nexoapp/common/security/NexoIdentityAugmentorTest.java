@@ -82,11 +82,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-linked", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-linked")
     })
     void oneMembershipIsLinkedWithItsRoles() {
         directory.put("sub-linked", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)));
@@ -109,11 +105,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-stranger", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-stranger"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-stranger")
     })
     void unknownIdentityIsNotLinked() {
         given().when().get(PROBE).then()
@@ -133,11 +125,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void twoMembershipsWithoutHeaderAreAmbiguous() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -159,11 +147,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void headerSelectsTheNamedMembership() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -187,11 +171,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void headerWithUnrelatedAssociationIsAmbiguous() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -212,11 +192,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-two", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-two")
     })
     void malformedHeaderIsAmbiguous() {
         directory.put("sub-two", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)),
@@ -237,11 +213,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-linked", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-linked")
     })
     void singleMembershipWithForeignHeaderIsAmbiguous() {
         directory.put("sub-linked", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)));
@@ -262,11 +234,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-linked", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-linked")
     })
     void singleMembershipWithMatchingHeaderIsLinked() {
         directory.put("sub-linked", new MembershipRef(ASSOCIATION_A, MEMBER_A, Set.of(Role.PRESIDENT)));
@@ -286,11 +254,7 @@ class NexoIdentityAugmentorTest {
     @TestSecurity(user = "sub-stranger", augmentors = NexoIdentityAugmentor.class)
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
-            @Claim(key = "sub", value = "sub-stranger"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
-            @Claim(key = "email", value = "user@nexo.test")
+            @Claim(key = "sub", value = "sub-stranger")
     })
     void headerDoesNotLinkAnIdentityWithoutMembership() {
         given().header(Headers.ASSOCIATION_ID, ASSOCIATION_A.toString()).when().get(PROBE).then()
@@ -309,9 +273,6 @@ class NexoIdentityAugmentorTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "bootstrap@nexo.test"),
             @Claim(key = "email_verified", value = "true")
     })
@@ -336,9 +297,6 @@ class NexoIdentityAugmentorTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "bootstrap@nexo.test"),
             @Claim(key = "email_verified", value = "false")
     })
@@ -360,9 +318,6 @@ class NexoIdentityAugmentorTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "bootstrap@nexo.test")
     })
     void missingVerificationClaimNeverReachesTheBootstrap() {
@@ -383,9 +338,6 @@ class NexoIdentityAugmentorTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-bootstrap"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email_verified", value = "true"),
             @Claim(key = "email", value = "user@nexo.test")
     })
@@ -407,9 +359,6 @@ class NexoIdentityAugmentorTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-linked"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "bootstrap@nexo.test"),
             @Claim(key = "email_verified", value = "true")
     })
@@ -433,9 +382,6 @@ class NexoIdentityAugmentorTest {
     @OidcSecurity(claims = {
             @Claim(key = "iss", value = StubIdentityDirectory.ISSUER),
             @Claim(key = "sub", value = "sub-two"),
-            // read by the current request filter until plan 01-14 rewrites it
-            @Claim(key = "sid", value = "session"),
-            @Claim(key = "preferred_username", value = "user"),
             @Claim(key = "email", value = "bootstrap@nexo.test"),
             @Claim(key = "email_verified", value = "true")
     })
