@@ -1,6 +1,6 @@
 package it.nexoapp.common.tenant.probe;
 
-import it.nexoapp.common.hibernate.entity.AuditEntity;
+import it.nexoapp.common.tenant.TenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 /**
  * Probe entity of the common test application: a minimal audited table used to prove audit
- * attribution (and, from plan 01-08, tenant isolation) on a real database. Test sources only.
+ * attribution and tenant isolation on a real database. Test sources only.
  */
 @Getter
 @Setter
@@ -27,7 +27,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "probe")
-public class ProbeEntity extends AuditEntity {
+public class ProbeEntity extends TenantEntity {
 
     @Serial
     private static final long serialVersionUID = 3318470182645930111L;

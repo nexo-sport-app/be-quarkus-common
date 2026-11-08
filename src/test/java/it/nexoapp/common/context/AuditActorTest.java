@@ -2,6 +2,7 @@ package it.nexoapp.common.context;
 
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import it.nexoapp.common.tenant.TenantContext;
 import it.nexoapp.common.tenant.probe.ProbeEntity;
 import it.nexoapp.common.tenant.probe.ProbeRepository;
 import jakarta.inject.Inject;
@@ -34,6 +35,10 @@ class AuditActorTest {
     @Inject
     ProbeRepository repository;
 
+    /* - fixtures - */
+    /** Tenant of every probe write and read of this class: the scope is set before each transaction. */
+    private static final UUID TENANT = UUID.randomUUID();
+
     // -----------------------------------------------------------------------------------------------------------------
 
     /**
@@ -41,7 +46,7 @@ class AuditActorTest {
      */
     @AfterEach
     void cleanUp() {
-        QuarkusTransaction.requiringNew().run(() -> repository.deleteAll());
+        TenantContext.runAs(TENANT, () -> QuarkusTransaction.requiringNew().run(() -> repository.deleteAll()));
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -52,14 +57,14 @@ class AuditActorTest {
      * @return the identifier of the new row
      */
     private UUID persistProbe() {
-        return QuarkusTransaction.requiringNew().call(() -> {
+        return TenantContext.callAs(TENANT, () -> QuarkusTransaction.requiringNew().call(() -> {
             final ProbeEntity probe = ProbeEntity.builder()
                     .taxCode(UUID.randomUUID().toString().substring(0, 16))
                     .lastName("Rossi")
                     .build();
             repository.persist(probe);
             return probe.getId();
-        });
+        }));
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -71,7 +76,7 @@ class AuditActorTest {
      * @return the created_by value
      */
     private String createdBy(final UUID id) {
-        return QuarkusTransaction.requiringNew().call(() -> repository.findById(id).getCreatedBy());
+        return TenantContext.callAs(TENANT, () -> QuarkusTransaction.requiringNew().call(() -> repository.findById(id).getCreatedBy()));
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -83,7 +88,7 @@ class AuditActorTest {
      * @return the updated_by value
      */
     private String updatedBy(final UUID id) {
-        return QuarkusTransaction.requiringNew().call(() -> repository.findById(id).getUpdatedBy());
+        return TenantContext.callAs(TENANT, () -> QuarkusTransaction.requiringNew().call(() -> repository.findById(id).getUpdatedBy()));
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -135,7 +140,7 @@ class AuditActorTest {
      * @param id identifier of the row
      */
     private void touch(final UUID id) {
-        QuarkusTransaction.requiringNew().run(() -> repository.findById(id).setLastName("Bianchi"));
+        TenantContext.runAs(TENANT, () -> QuarkusTransaction.requiringNew().run(() -> repository.findById(id).setLastName("Bianchi")));
     }
 
     // -----------------------------------------------------------------------------------------------------------------
