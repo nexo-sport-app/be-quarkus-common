@@ -6,7 +6,13 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 
@@ -22,6 +28,29 @@ import java.util.List;
 @Path("/probe-logging")
 @AllowUnlinked
 public class ProbeLoggingResource {
+
+    /**
+     * Typed client of the text endpoint, used to produce an outbound call.
+     */
+    @Path("/probe-logging")
+    public interface ProbeClient {
+
+        /**
+         * Calls the text endpoint.
+         *
+         * @param query  query string value the logs must never show
+         * @param bearer credential header value the logs must never show
+         * @param callId call id header
+         * @return the raw response
+         */
+        @GET
+        @Path("/text")
+        Response text(@QueryParam("q") String query, @HeaderParam("Authorization") String bearer,
+                      @HeaderParam("X-Call-Id") String callId);
+
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Nested element of the probe request.
@@ -103,6 +132,25 @@ public class ProbeLoggingResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public InputStream stream() {
         return new ByteArrayInputStream("stream-secret".getBytes(StandardCharsets.UTF_8));
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Makes an outbound call to the text endpoint of this resource, with a query string and a credential header
+     * the logs must never show.
+     *
+     * @param uriInfo the request URI information, used to find this server
+     * @return the status of the outbound call
+     */
+    @GET
+    @Path("/call")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String call(@Context final UriInfo uriInfo) {
+        final ProbeClient client = RestClientBuilder.newBuilder().baseUri(uriInfo.getBaseUri()).build(ProbeClient.class);
+        try (Response response = client.text("query-secret", "Bearer client-secret", "client-call-1")) {
+            return "status " + response.getStatus();
+        }
     }
 
 }

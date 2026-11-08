@@ -20,7 +20,8 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * Logs request and response bodies at DEBUG, with every {@link Sensitive} member masked (D-18).
+ * Logs request and response bodies at DEBUG, with every {@link Sensitive} member masked (D-18), together with
+ * the allowlisted headers (D-19, see {@link HeaderAllowlist}).
  * <p>
  * The interceptor does nothing unless its logger is DEBUG-enabled, and then checks that before serializing anything.
  * Only JSON bodies whose Java type is a record (or a collection of records) are written, through a private mapper
@@ -60,7 +61,8 @@ class BodyLoggingInterceptor implements ContainerRequestFilter, ReaderIntercepto
     @Override
     public void filter(final ContainerRequestContext requestContext) {
         if (LOG.isDebugEnabled() && requestContext.hasEntity() && !isJson(requestContext.getMediaType())) {
-            LOG.debug("request body={}", placeholder(requestContext.getMediaType()));
+            LOG.debug("request headers={} body={}", HeaderAllowlist.filter(requestContext.getHeaders()),
+                    placeholder(requestContext.getMediaType()));
         }
     }
 
@@ -73,7 +75,8 @@ class BodyLoggingInterceptor implements ContainerRequestFilter, ReaderIntercepto
     public Object aroundReadFrom(final ReaderInterceptorContext context) throws IOException, WebApplicationException {
         final Object entity = context.proceed();
         if (LOG.isDebugEnabled() && isJson(context.getMediaType())) {
-            LOG.debug("request body={}", render(context.getMediaType(), entity));
+            LOG.debug("request headers={} body={}", HeaderAllowlist.filter(context.getHeaders()),
+                    render(context.getMediaType(), entity));
         }
         return entity;
     }
@@ -86,7 +89,8 @@ class BodyLoggingInterceptor implements ContainerRequestFilter, ReaderIntercepto
     @Override
     public void aroundWriteTo(final WriterInterceptorContext context) throws IOException, WebApplicationException {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("response body={}", render(context.getMediaType(), context.getEntity()));
+            LOG.debug("response headers={} body={}", HeaderAllowlist.filter(context.getHeaders()),
+                    render(context.getMediaType(), context.getEntity()));
         }
         context.proceed();
     }
