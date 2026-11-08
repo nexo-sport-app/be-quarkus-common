@@ -12,8 +12,10 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Validation and routing errors reach the client as one {@code Fault} with the real HTTP status (FND-05).
@@ -109,11 +111,63 @@ class ValidationFaultTest {
     // -----------------------------------------------------------------------------------------------------------------
 
     /**
-     * A valid request passes untouched.
+     * A valid request passes untouched, and the Fault has no violations field on other faults.
      */
     @Test
-    void validRequestPasses() {
+    void validRequestPassesAndOtherFaultsHaveNoViolations() {
         post("{\"name\":\"Mario\",\"taxCode\":\"12345678901\",\"age\":30}").then().statusCode(200).body(equalTo("Mario"));
+        given().get("/no-such-path").then().statusCode(404).body("violations", nullValue());
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * An unknown path is a 404 Fault, not a 500.
+     */
+    @Test
+    void unknownPathIsNotFoundFault() {
+        given().get("/no-such-path").then()
+                .statusCode(404)
+                .body("code", equalTo("nexo.http.404"))
+                .body("trace", notNullValue())
+                .body("message", notNullValue());
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * A wrong method on an existing path is a 405 Fault.
+     */
+    @Test
+    void wrongMethodIsMethodNotAllowedFault() {
+        given().delete("/probe-validation/readonly").then()
+                .statusCode(405)
+                .body("code", equalTo("nexo.http.405"));
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * An enum path parameter with an unknown constant is a 404 Fault, not a 500; a known constant works.
+     */
+    @Test
+    void unknownEnumConstantIsNotFoundFault() {
+        given().get("/probe-validation/kind/NOT_A_KIND").then()
+                .statusCode(404)
+                .body("code", equalTo("nexo.http.404"));
+        given().get("/probe-validation/kind/FIRST").then().statusCode(200).body(equalTo("FIRST"));
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * An unexpected failure still is a 500 Fault.
+     */
+    @Test
+    void unexpectedFailureStaysServerError() {
+        final Response response = given().get("/probe-validation/boom");
+        response.then().statusCode(500).body("code", notNullValue());
+        assertNotNull(response.jsonPath().getString("trace"));
     }
 
 }
