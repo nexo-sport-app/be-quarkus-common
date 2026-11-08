@@ -78,4 +78,19 @@ public final class Headers {
     @Parameter(description = "Version of the calling application", example = "1.0.0")
     public static final String APP_VERSION = "x-app-version";
 
+    /**
+     * Header key selecting the association a request acts on.
+     * <p>
+     * A caller with more than one membership picks one of them with this header. The value is never trusted
+     * alone: it must match a membership verified for the caller's identity (D-01).
+     * </p>
+     * <p>
+     * <b>Example:</b> {@code x-association-id: 3f2504e0-4f89-11d3-9a0c-0305e82c3301}
+     * </p>
+     *
+     * @see java.util.UUID
+     */
+    @Parameter(description = "Association the request acts on, one of the caller's verified memberships", example = "3f2504e0-4f89-11d3-9a0c-0305e82c3301")
+    public static final String ASSOCIATION_ID = "x-association-id";
+
 }
