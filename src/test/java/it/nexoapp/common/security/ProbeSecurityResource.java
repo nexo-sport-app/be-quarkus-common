@@ -2,6 +2,10 @@ package it.nexoapp.common.security;
 
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import it.nexoapp.common.constant.MDCConstant;
+import it.nexoapp.common.context.RequestContext;
+import it.nexoapp.common.tenant.probe.ProbeRepository;
+import it.nexoapp.common.utils.MDCUtils;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -23,6 +27,16 @@ public class ProbeSecurityResource {
     /** Identity of the current request. */
     @Inject
     SecurityIdentity identity;
+
+    /* - request - */
+    /** Request-scoped context populated by the request filter. */
+    @Inject
+    RequestContext requestContext;
+
+    /* - repository - */
+    /** Probe table, tenant-scoped through the request. */
+    @Inject
+    ProbeRepository probeRepository;
 
     // -----------------------------------------------------------------------------------------------------------------
 
@@ -116,6 +130,68 @@ public class ProbeSecurityResource {
     @Produces(MediaType.APPLICATION_JSON)
     public AssociationView me() {
         return currentAssociation();
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * What the request context and the MDC hold while the request runs.
+     *
+     * @param callId        MDC value of CALL_ID
+     * @param associationId MDC value of ASSOCIATION_ID, null when absent
+     * @param memberId      MDC value of MEMBER_ID, null when absent
+     * @param subject       subject held by the request context, null when absent
+     * @param contextAssociationId association held by the request context, null when absent
+     * @param contextMemberId      member held by the request context, null when absent
+     */
+    public record MdcView(String callId, String associationId, String memberId, String subject,
+                          String contextAssociationId, String contextMemberId) {
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Echoes the MDC identifiers and the request context subject seen inside the resource.
+     *
+     * @return the view of MDC and request context
+     */
+    @GET
+    @AllowUnlinked
+    @Path("/mdc")
+    @Produces(MediaType.APPLICATION_JSON)
+    public MdcView mdc() {
+        return new MdcView(
+                MDCUtils.get(MDCConstant.CALL_ID),
+                MDCUtils.get(MDCConstant.ASSOCIATION_ID),
+                MDCUtils.get(MDCConstant.MEMBER_ID),
+                requestContext.getSubject(),
+                requestContext.getAssociationId() == null ? null : requestContext.getAssociationId().toString(),
+                requestContext.getMemberId() == null ? null : requestContext.getMemberId().toString());
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Number of probe rows visible to the request.
+     *
+     * @param count rows under the tenant of the request
+     */
+    public record CountView(long count) {
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Counts the probe rows visible under the tenant of the request.
+     *
+     * @return the number of rows of the request's association
+     */
+    @GET
+    @AllowUnlinked
+    @Path("/probe-count")
+    @Produces(MediaType.APPLICATION_JSON)
+    public CountView probeCount() {
+        return new CountView(probeRepository.count());
     }
 
     // -----------------------------------------------------------------------------------------------------------------

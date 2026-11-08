@@ -1,5 +1,7 @@
 package it.nexoapp.common.context;
 
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ManagedContext;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import it.nexoapp.common.tenant.TenantContext;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -34,6 +37,11 @@ class AuditActorTest {
     /* - repository - */
     @Inject
     ProbeRepository repository;
+
+    /* - request - */
+    /** Request-scoped context, filled by hand on bare threads that activate a request context. */
+    @Inject
+    RequestContext requestContext;
 
     /* - fixtures - */
     /** Tenant of every probe write and read of this class: the scope is set before each transaction. */
@@ -301,7 +309,7 @@ class AuditActorTest {
     // -----------------------------------------------------------------------------------------------------------------
 
     /**
-     * The test thread has an active request context but no request branch exists yet: it gets the system actor.
+     * The test thread has an active request context but no caller identifiers in it: it gets the system actor.
      */
     @Test
     void requestContextThreadWithoutScopeGetsSystemActor() {
@@ -309,6 +317,95 @@ class AuditActorTest {
 
         assertEquals("system:cmn", createdBy(id), "created_by on the test thread");
         assertEquals("system:cmn", updatedBy(id), "updated_by on the test thread");
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Runs a task on a bare thread inside an activated request context whose {@link RequestContext} holds the
+     * given identifiers, as an HTTP request of a caller would.
+     *
+     * @param memberId member of the request, null when none
+     * @param subject  subject of the request, null when none
+     * @param task     task to run inside the request context
+     * @param <T>      type of the result
+     * @return the task result
+     * @throws Exception when the task or the executor fails
+     */
+    private <T> T inRequest(final UUID memberId, final String subject, final Supplier<T> task) throws Exception {
+        return onBareThread(() -> {
+            final ManagedContext context = Arc.container().requestContext();
+            context.activate();
+            try {
+                requestContext.setMemberId(memberId);
+                requestContext.setSubject(subject);
+                return task.get();
+            } finally {
+                context.terminate();
+            }
+        });
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * A request with a linked member attributes the write to the member's lowercase UUID.
+     *
+     * @throws Exception when the executor fails
+     */
+    @Test
+    void requestMemberIsTheActor() throws Exception {
+        final UUID member = UUID.fromString("ABCDEF01-2345-4789-ABCD-EF0123456789");
+
+        final UUID id = inRequest(member, "sub-1", this::persistProbe);
+
+        assertEquals("abcdef01-2345-4789-abcd-ef0123456789", createdBy(id), "created_by of a member request");
+        assertEquals("abcdef01-2345-4789-abcd-ef0123456789", updatedBy(id), "updated_by of a member request");
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * A request that knows only the identity provider subject is attributed to {@code idp:<subject>}.
+     *
+     * @throws Exception when the executor fails
+     */
+    @Test
+    void requestSubjectWithoutMemberIsIdpActor() throws Exception {
+        final UUID id = inRequest(null, "sub-only", this::persistProbe);
+
+        assertEquals("idp:sub-only", createdBy(id), "created_by of an unlinked request");
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * An explicit execution scope wins over the member and the subject of the request.
+     *
+     * @throws Exception when the executor fails
+     */
+    @Test
+    void explicitScopeWinsOverTheRequestActor() throws Exception {
+        final UUID member = UUID.randomUUID();
+
+        final UUID id = inRequest(member, "sub-2", () -> ExecutionScope.callAs("system:job-a", this::persistProbe));
+
+        assertEquals("system:job-a", createdBy(id), "created_by with an explicit actor");
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * A request context without member and subject (a tenant scope on a bare thread activates one) falls back
+     * to the system actor.
+     *
+     * @throws Exception when the executor fails
+     */
+    @Test
+    void emptyRequestContextFallsBackToSystemActor() throws Exception {
+        final UUID id = inRequest(null, null, this::persistProbe);
+
+        assertEquals("system:cmn", createdBy(id), "created_by of an empty request context");
     }
 
 }
