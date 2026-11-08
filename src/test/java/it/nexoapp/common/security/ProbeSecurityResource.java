@@ -1,6 +1,8 @@
 package it.nexoapp.common.security;
 
+import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -45,6 +47,7 @@ public class ProbeSecurityResource {
      * @return the view of the principal
      */
     @GET
+    @AllowUnlinked
     @Path("/principal")
     @Produces(MediaType.APPLICATION_JSON)
     public PrincipalView principal() {
@@ -58,6 +61,76 @@ public class ProbeSecurityResource {
                 principal.memberId() == null ? null : principal.memberId().toString(),
                 principal.roles().stream().map(Enum::name).collect(Collectors.toSet()),
                 identity.getRoles());
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * What a gated endpoint returns: the association the request acts in.
+     *
+     * @param associationId association of the principal, null when the principal is not linked
+     */
+    public record AssociationView(String associationId) {
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Endpoint restricted to the PRESIDENT role.
+     *
+     * @return the association of the caller
+     */
+    @GET
+    @RolesAllowed("PRESIDENT")
+    @Path("/president")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AssociationView president() {
+        return currentAssociation();
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Endpoint open to any authenticated identity; only the identity gate stands in front of it.
+     *
+     * @return the association of the caller
+     */
+    @GET
+    @Authenticated
+    @Path("/authenticated")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AssociationView authenticated() {
+        return currentAssociation();
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Endpoint exempt from the identity gate.
+     *
+     * @return the association of the caller, null when unlinked
+     */
+    @GET
+    @AllowUnlinked
+    @Path("/me")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AssociationView me() {
+        return currentAssociation();
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Reads the association of the attached principal.
+     *
+     * @return the view, with a null association when none is attached or the principal is not linked
+     */
+    private AssociationView currentAssociation() {
+        final NexoPrincipal principal = identity.getAttribute(NexoPrincipal.ATTRIBUTE);
+        if (principal == null || principal.associationId() == null) {
+            return new AssociationView(null);
+        }
+        return new AssociationView(principal.associationId().toString());
     }
 
 }
