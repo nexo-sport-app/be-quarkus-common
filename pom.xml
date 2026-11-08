@@ -47,16 +47,6 @@
             <artifactId>quarkus-flyway</artifactId>
         </dependency>
 
-        <!-- CACHE -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-redis-cache</artifactId>
-        </dependency>
-
         <!-- SECURITY -->
         <dependency>
             <groupId>io.quarkus</groupId>
