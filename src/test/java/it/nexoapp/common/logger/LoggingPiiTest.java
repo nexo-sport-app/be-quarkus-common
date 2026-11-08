@@ -179,6 +179,20 @@ class LoggingPiiTest {
     // -----------------------------------------------------------------------------------------------------------------
 
     /**
+     * The body logging interceptor emits nothing at the default level.
+     */
+    @Test
+    void bodyInterceptorIsSilentAtInfo() {
+        postProbe();
+
+        assertTrue(capture.records().stream()
+                        .noneMatch(r -> "it.nexoapp.common.logger.BodyLoggingInterceptor".equals(r.getLoggerName())),
+                "the interceptor must not log at INFO");
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
      * SQL statements leave no record at the default level.
      */
     @Test
