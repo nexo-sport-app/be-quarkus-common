@@ -1,6 +1,7 @@
 package it.nexoapp.common.archfixture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import it.nexoapp.common.testing.ArchitectureRules;
@@ -58,6 +59,35 @@ class ArchitectureRulesFixtureTest {
                 "rule " + name + " must not report a violation on the good fixture: "
                         + rule.evaluate(good).getFailureReport())));
         assertAll(assertions);
+    }
+
+    // ------------------------------------------------------------------------------------------
+
+    /** A public MapStruct-generated mapper implementation is allowed by every rule. */
+    @Test
+    void generatedMapStructImplementationIsAllowed() {
+        final JavaClasses mapper = new ClassFileImporter().importPackages("it.nexoapp.common.archfixture.mapperimpl");
+        assertTrue(mapper.stream().anyMatch(c -> c.getSimpleName().equals("GoodMapperImpl") && c.getModifiers().contains(JavaModifier.PUBLIC)),
+                "the processor must have generated a public GoodMapperImpl: " + mapper);
+        final List<Executable> assertions = new ArrayList<>();
+        rules().forEach((name, rule) -> assertions.add(() -> assertFalse(
+                rule.evaluate(mapper).hasViolation(),
+                "rule " + name + " must not report a violation on a generated mapper: "
+                        + rule.evaluate(mapper).getFailureReport())));
+        assertAll(assertions);
+    }
+
+    // ------------------------------------------------------------------------------------------
+
+    /** A public implementation of an interface that is not a MapStruct mapper is still rejected. */
+    @Test
+    void publicImplementationOfPlainInterfaceStillFails() {
+        final JavaClasses plain = new ClassFileImporter().importPackages("it.nexoapp.common.archfixture.plainimpl");
+        assertEquals(2, plain.size(), "plain fixture classes: " + plain);
+        assertTrue(ArchitectureRules.IMPLEMENTATIONS_ARE_PACKAGE_PRIVATE.evaluate(plain).hasViolation(),
+                "a public Impl of a non-mapper interface must fail the package-private rule");
+        assertTrue(ArchitectureRules.ONLY_ALLOWED_KINDS_ARE_PUBLIC.evaluate(plain).hasViolation(),
+                "a public Impl of a non-mapper interface must fail the public-kinds rule");
     }
 
     // ------------------------------------------------------------------------------------------

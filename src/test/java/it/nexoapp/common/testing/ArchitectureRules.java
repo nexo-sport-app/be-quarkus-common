@@ -67,10 +67,15 @@ public final class ArchitectureRules {
 
     // ------------------------------------------------------------------------------------------
 
-    /** Implementations are package-private so they cannot be used directly from outside their package. */
+    /**
+     * Implementations are package-private so they cannot be used directly from outside their package.
+     * <p>
+     * The only exemption is a MapStruct-generated mapper implementation, which the processor always emits as public.
+     */
     @ArchTest
     public static final ArchRule IMPLEMENTATIONS_ARE_PACKAGE_PRIVATE = classes()
             .that().haveSimpleNameEndingWith(IMPLEMENTATION_SUFFIX)
+            .and(DescribedPredicate.not(mapStructGeneratedImplementation()))
             .should().notBePublic()
             .andShould().notBeProtected()
             .because("only interfaces are public, implementations are package-private")
@@ -100,7 +105,8 @@ public final class ArchitectureRules {
 
     /**
      * Public top-level classes are interfaces, records, enums, annotations, JPA entity types, JAX-RS resources,
-     * throwables or final utility classes ({@code *Utils}, {@code *Constant}, {@code *Constants}).
+     * throwables, final utility classes ({@code *Utils}, {@code *Constant}, {@code *Constants}) or MapStruct-generated
+     * mapper implementations ({@code *Impl} classes implementing an interface annotated with {@code @Mapper}).
      */
     @ArchTest
     public static final ArchRule ONLY_ALLOWED_KINDS_ARE_PUBLIC = classes()
@@ -170,7 +176,23 @@ public final class ArchitectureRules {
                         && (c.getSimpleName().endsWith("Utils")
                         || c.getSimpleName().endsWith("Constant")
                         || c.getSimpleName().endsWith("Constants")));
-        return structural.or(jpa).or(resource).or(throwable).or(utility);
+        return structural.or(jpa).or(resource).or(throwable).or(utility).or(mapStructGeneratedImplementation());
+    }
+
+    // ------------------------------------------------------------------------------------------
+
+    /**
+     * Describes a MapStruct-generated mapper implementation: a class named {@code *Impl} that implements an interface
+     * annotated with {@code org.mapstruct.Mapper}. The annotation is matched by its qualified name (it has CLASS
+     * retention and ArchUnit reads it from the bytecode), so common needs no MapStruct dependency for it.
+     *
+     * @return the predicate matching generated mapper implementations
+     */
+    private static DescribedPredicate<JavaClass> mapStructGeneratedImplementation() {
+        return DescribedPredicate.describe(
+                "be a MapStruct-generated implementation of an interface annotated with @org.mapstruct.Mapper",
+                c -> c.getSimpleName().endsWith(IMPLEMENTATION_SUFFIX)
+                        && c.getAllRawInterfaces().stream().anyMatch(i -> i.isAnnotatedWith("org.mapstruct.Mapper")));
     }
 
     // ------------------------------------------------------------------------------------------
