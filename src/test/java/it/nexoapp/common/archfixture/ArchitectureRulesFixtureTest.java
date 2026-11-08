@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -41,6 +42,21 @@ class ArchitectureRulesFixtureTest {
         rules().forEach((name, rule) -> assertions.add(() -> assertTrue(
                 rule.evaluate(bad).hasViolation(),
                 "rule " + name + " must report a violation on the bad fixture")));
+        assertAll(assertions);
+    }
+
+    // ------------------------------------------------------------------------------------------
+
+    /** No rule flags the clean fixture. */
+    @Test
+    void noRuleReportsAViolationOnTheGoodFixture() {
+        final JavaClasses good = new ClassFileImporter().importPackages("it.nexoapp.common.archfixture.good");
+        assertEquals(5, good.size(), "good fixture classes: " + good);
+        final List<Executable> assertions = new ArrayList<>();
+        rules().forEach((name, rule) -> assertions.add(() -> assertFalse(
+                rule.evaluate(good).hasViolation(),
+                "rule " + name + " must not report a violation on the good fixture: "
+                        + rule.evaluate(good).getFailureReport())));
         assertAll(assertions);
     }
 
