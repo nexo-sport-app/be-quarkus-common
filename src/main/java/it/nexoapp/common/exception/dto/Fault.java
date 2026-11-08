@@ -9,6 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Fault response bean
@@ -52,5 +53,11 @@ public class Fault implements Serializable {
      */
     @Schema(description = "Concise technical message about the fault code", examples = "The weather is not good :(")
     String message;
+
+    /**
+     * Every violated validation rule, present only on validation faults
+     */
+    @Schema(description = "Every violated validation rule of the request, present only on validation faults")
+    List<Violation> violations;
 
 }
