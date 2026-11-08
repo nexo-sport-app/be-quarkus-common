@@ -18,7 +18,7 @@ public class AbstractRuntimeExceptionMapper implements ExceptionMapper<AbstractR
 
     @Override
     public Response toResponse(final AbstractRuntimeException exception) {
-        logger.error("Caught a runtime exception: ", exception);
+        FaultLogger.log(logger, exception.getStatus(), exception.getCode(), exception.getMessage(), exception);
         return Response
                 .status(exception.getStatus())
                 .entity(

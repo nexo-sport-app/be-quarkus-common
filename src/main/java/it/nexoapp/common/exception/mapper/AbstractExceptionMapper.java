@@ -18,7 +18,7 @@ public class AbstractExceptionMapper implements ExceptionMapper<AbstractExceptio
 
     @Override
     public Response toResponse(final AbstractException ex) {
-        logger.error("Caught an exception", ex);
+        FaultLogger.log(logger, ex.getStatus(), ex.getCode(), ex.getMessage(), ex);
         return Response
                 .status(ex.getStatus())
                 .entity(
